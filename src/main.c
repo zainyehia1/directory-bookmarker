@@ -11,7 +11,7 @@ int main(int argc, char *argv[]) {
     char *command = argv[1];
 
     if (strcmp(command, "init") == 0) {
-
+        init_bookmark();
     }
     else if (strcmp(command, "add") == 0) {
 
