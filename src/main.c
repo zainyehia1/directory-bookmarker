@@ -1,15 +1,6 @@
 #include <stdio.h>
 #include <string.h>
-
-void print_helper(void) {
-    printf("Usage: bm <command> [<args>]\n");
-    printf("Commands\n");
-    printf("  init                   Initialize bookmark system\n");
-    printf("  add <name> <path>      Add a bookmark\n");
-    printf("  list                   List all bookmarks\n");
-    printf("  go <name>              Print path of a bookmark\n");
-}
-
+#include "bookmarks.h"
 
 int main(int argc, char *argv[]) {
 
