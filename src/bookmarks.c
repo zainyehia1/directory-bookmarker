@@ -13,9 +13,9 @@ void print_helper(void) {
 }
 
 int init_bookmark(void) {
-    FILE *file = fopen("bookmarks.tsv", "r");
+    FILE *file = fopen(BOOKMARK_FILE, "r");
     if (file == NULL) {
-        file = fopen("bookmarks.tsv", "w");
+        file = fopen(BOOKMARK_FILE, "w");
         if (file != NULL) {
             fprintf(file, "Bookmark Name\tDirectory Path\n");
             fclose(file);
@@ -33,5 +33,21 @@ int init_bookmark(void) {
 
         printf("Bookmark system already initialized!\n");
         return 0;
+    }
+}
+
+int add_bookmark(char *bookmark, char *directory) {
+    FILE *file = fopen(BOOKMARK_FILE, "a");
+
+    if (file != NULL) {
+        fprintf(file, "%s\t%s", bookmark, directory);
+        fclose(file);
+
+        printf("Bookmark added successfully!\n");
+        return 0;
+    }
+    else {
+        printf("Error adding bookmark to file!");
+        return 1;
     }
 }
