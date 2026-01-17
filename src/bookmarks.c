@@ -1,5 +1,6 @@
 #include "bookmarks.h"
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 void print_helper(void) {
@@ -37,15 +38,25 @@ int init_bookmark(void) {
     }
 }
 
-int add_bookmark(char *bookmark, char *directory) {
+int add_bookmark(char *name, char *path) {
     FILE *file = fopen(BOOKMARK_FILE, "a");
 
     if (file == NULL) {
         printf("Error adding bookmark to file!");
+        printf("You haven't initialized the bookmark system yet.\nRun 'bm init' first to initialize the bookmark system!\n");
         return 1;
     }
     else {
-        fprintf(file, "%-15s\t%s\n", bookmark, directory);
+        if (strlen(name) > MAX_NAME) {
+            printf("The bookmark name is too long. Try again.\n");
+            return 1;
+        }
+        else if (strlen(path) > MAX_PATH) {
+            printf("The directory path is too long. Try again.\n");
+            return 1;
+        }
+
+        fprintf(file, "%-15s\t%s\n", name, path);
         fclose(file);
 
         printf("Bookmark added successfully!\n");
@@ -62,7 +73,7 @@ int list_bookmarks(void) {
     else {
         char line [MAX_LINE];
 
-        fgets(line, sizeof(line), file);
+        fgets(line, MAX_LINE, file);
         char *name = strtok(line,"\t");
         char *path = strtok(NULL, "\n");
         printf("--------------------------------------------\n");
@@ -70,7 +81,7 @@ int list_bookmarks(void) {
         printf("--------------\t----------------------------\n");
 
 
-        while (fgets(line, sizeof(line), file) != NULL) {
+        while (fgets(line, MAX_LINE, file) != NULL) {
             char *bookmark = strtok(line,"\t");
             char *directory = strtok(NULL, "\n");
             printf("%s\t%s\n", bookmark, directory);
@@ -78,4 +89,45 @@ int list_bookmarks(void) {
         fclose(file);
         return 0;
     }
+}
+
+static BookmarkNode *load_bookmarks(void) {
+    BookmarkNode *head = NULL;
+
+    FILE *file = fopen(BOOKMARK_FILE, "r");
+    if (file != NULL) {
+        char line [MAX_LINE];
+
+        fgets(line, MAX_LINE, file); // Skip headers
+
+        while (fgets(line, MAX_LINE, file) != NULL) {
+            char *name = strtok(line,"\t");
+            char *path = strtok(NULL, "\n");
+
+            if (name != NULL && path != NULL){
+                BookmarkNode *bookmark_node = malloc(sizeof(BookmarkNode));
+                if (bookmark_node == NULL) {
+                    printf("Unable to allocate memory for a BookmarkNode.\n");
+                    //free if allocated in ll
+                    return NULL;
+                }
+                strcpy(bookmark_node->bookmark.name, name);
+                strcpy(bookmark_node->bookmark.path, path);
+                bookmark_node->next = NULL;
+                if (head == NULL) {
+                    head = bookmark_node;
+                }
+                else {
+                    BookmarkNode *temp = head;
+                    while (temp->next != NULL) {
+                        temp = temp->next;
+                    }
+                    temp->next = bookmark_node;
+                }
+            }
+        }
+        fclose(file);
+    }
+
+    return head;
 }
