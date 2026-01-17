@@ -3,6 +3,12 @@
 #include <stdlib.h>
 #include <string.h>
 
+// Helper functions
+static void free_bookmarks(BookmarkNode *head);
+static BookmarkNode *load_bookmarks(void);
+static int save_bookmarks(BookmarkNode *head);
+static BookmarkNode *find_bookmark(BookmarkNode *head, char *name);
+
 void print_helper(void) {
     printf("Usage: bm <command> [<args>]\n");
     printf("Commands\n");
@@ -158,4 +164,15 @@ static int save_bookmarks(BookmarkNode *head) {
 
     fclose(file);
     return 0;
+}
+
+static BookmarkNode *find_bookmark(BookmarkNode *head, char *name) {
+    if (head == NULL) return head;
+
+    BookmarkNode *temp = head;
+    while (temp != NULL && strcasecmp(temp->bookmark.name, name) != 0) {
+        temp = temp->next;
+    }
+
+    return temp;
 }
