@@ -140,3 +140,22 @@ static BookmarkNode *load_bookmarks(void) {
     }
     return head;
 }
+
+static int save_bookmarks(BookmarkNode *head) {
+    FILE *file = fopen(BOOKMARK_FILE, "w");
+    if (file == NULL) {
+        printf("Error saving bookmarks to file.\n");
+        return 1;
+    }
+
+    fprintf(file, "Bookmark Name\tDirectory Path\n");
+
+    BookmarkNode *temp = head;
+    while (temp != NULL) {
+        fprintf(file, "%-15s\t%s\n", temp->bookmark.name, temp->bookmark.path);
+        temp = temp->next;
+    }
+
+    fclose(file);
+    return 0;
+}
