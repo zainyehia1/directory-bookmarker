@@ -1,5 +1,6 @@
 #include "bookmarks.h"
 #include <stdio.h>
+#include <string.h>
 
 void print_helper(void) {
     printf("Usage: bm <command> [<args>]\n");
@@ -39,15 +40,42 @@ int init_bookmark(void) {
 int add_bookmark(char *bookmark, char *directory) {
     FILE *file = fopen(BOOKMARK_FILE, "a");
 
-    if (file != NULL) {
-        fprintf(file, "%s\t%s", bookmark, directory);
+    if (file == NULL) {
+        printf("Error adding bookmark to file!");
+        return 1;
+    }
+    else {
+        fprintf(file, "%-15s\t%s\n", bookmark, directory);
         fclose(file);
 
         printf("Bookmark added successfully!\n");
         return 0;
     }
-    else {
-        printf("Error adding bookmark to file!");
+}
+
+int list_bookmarks(void) {
+    FILE *file = fopen(BOOKMARK_FILE, "r");
+    if (file == NULL) {
+        printf("You haven't initialized the bookmark system yet.\nRun 'bm init' first to initialize the bookmark system!\n");
         return 1;
+    }
+    else {
+        char line [MAX_LINE];
+
+        fgets(line, sizeof(line), file);
+        char *name = strtok(line,"\t");
+        char *path = strtok(NULL, "\n");
+        printf("--------------------------------------------\n");
+        printf("|%s\t\t%s     |\n", name, path);
+        printf("--------------\t----------------------------\n");
+
+
+        while (fgets(line, sizeof(line), file) != NULL) {
+            char *bookmark = strtok(line,"\t");
+            char *directory = strtok(NULL, "\n");
+            printf("%s\t%s\n", bookmark, directory);
+        }
+        fclose(file);
+        return 0;
     }
 }
