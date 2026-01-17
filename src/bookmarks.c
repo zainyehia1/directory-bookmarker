@@ -8,6 +8,7 @@ static void free_bookmarks(BookmarkNode *head);
 static BookmarkNode *load_bookmarks(void);
 static int save_bookmarks(BookmarkNode *head);
 static BookmarkNode *find_bookmark(BookmarkNode *head, char *name);
+static int bookmark_exists(BookmarkNode *head, char *name);
 
 void print_helper(void) {
     printf("Usage: bm <command> [<args>]\n");
@@ -175,4 +176,8 @@ static BookmarkNode *find_bookmark(BookmarkNode *head, char *name) {
     }
 
     return temp;
+}
+
+static int bookmark_exists(BookmarkNode *head, char *name) {
+    return find_bookmark(head, name) != NULL;
 }
