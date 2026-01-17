@@ -91,6 +91,16 @@ int list_bookmarks(void) {
     }
 }
 
+static void free_bookmarks(BookmarkNode *head) {
+    BookmarkNode *temp = head;
+
+    while (temp != NULL) {
+        BookmarkNode *next = temp->next;
+        free(temp);
+        temp = next;
+    }
+}
+
 static BookmarkNode *load_bookmarks(void) {
     BookmarkNode *head = NULL;
 
@@ -108,7 +118,7 @@ static BookmarkNode *load_bookmarks(void) {
                 BookmarkNode *bookmark_node = malloc(sizeof(BookmarkNode));
                 if (bookmark_node == NULL) {
                     printf("Unable to allocate memory for a BookmarkNode.\n");
-                    //free if allocated in ll
+                    free_bookmarks(head);
                     return NULL;
                 }
                 strcpy(bookmark_node->bookmark.name, name);
@@ -128,6 +138,5 @@ static BookmarkNode *load_bookmarks(void) {
         }
         fclose(file);
     }
-
     return head;
 }
