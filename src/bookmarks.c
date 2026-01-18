@@ -14,7 +14,6 @@ static int save_bookmarks(BookmarkNode *head);
 static void trim_trailing_space(char *name);
 static BookmarkNode *find_bookmark(BookmarkNode *head, char *name);
 static bool bookmark_exists(BookmarkNode *head, char *name);
-static bool is_valid_path(char *path);
 
 void print_helper(void) {
     printf("Usage: bm <command> [<args>]\n");
@@ -73,18 +72,27 @@ int add_bookmark(char *name, char *path) {
         return 1;
     }
 
+    char *resolved_path = realpath(path, NULL);
+
+    if (resolved_path == NULL) {
+        printf("'%s' is not a valid path.\n", path);
+        return 1;
+    }
+
     BookmarkNode *head = load_bookmarks();
 
     if (bookmark_exists(head, name)) {
-        printf("Error: A bookmark named '%s' already exists --> /%s.\n", name, find_bookmark(head, name)->bookmark.path);
+        printf("Error: A bookmark named '%s' already exists --> %s.\n", name, find_bookmark(head, name)->bookmark.path);
         printf("Try using a different name.\n");
+        free(resolved_path);
         free_bookmarks(head);
         return 1;
     }
 
     BookmarkNode *added_bookmark = malloc(sizeof(BookmarkNode));
-    strcpy(added_bookmark->bookmark.name,name);
-    strcpy(added_bookmark->bookmark.path,path);
+    strcpy(added_bookmark->bookmark.name, name);
+    strcpy(added_bookmark->bookmark.path, resolved_path);
+    free(resolved_path);
     added_bookmark->next = NULL;
 
     if (head == NULL) {
@@ -319,8 +327,4 @@ static BookmarkNode *find_bookmark(BookmarkNode *head, char *name) {
 
 static bool bookmark_exists(BookmarkNode *head, char *name) {
     return find_bookmark(head, name) != NULL;
-}
-
-static bool is_valid_path(char *path) {
-    return access(path, F_OK) == 0;
 }
