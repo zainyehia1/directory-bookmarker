@@ -20,6 +20,7 @@ void print_helper(void) {
     printf("  add <name> <path>      Add a bookmark\n");
     printf("  delete <name>          Delete a bookmark\n");
     printf("  list                   List all bookmarks\n");
+    printf("  rename <current_name> <new_name>          Rename a bookmark\n");
     printf("  go <name>              Print path of a bookmark\n");
     printf("  help                   Print this message\n");
 }
@@ -166,6 +167,51 @@ int delete_bookmark(char *name) {
     else {
         printf("Error: There isn't a bookmark named '%s' to delete.\n", name);
         printf("Use 'bm add %s <path>' to add one.\n", name);
+        free_bookmarks(head);
+        return 1;
+    }
+
+    save_bookmarks(head);
+    free_bookmarks(head);
+    return 0;
+}
+
+int rename_bookmark(char *old_name, char *new_name) {
+    FILE *file = fopen(BOOKMARK_FILE, "r");
+
+    if (file == NULL) {
+        printf("Error editing bookmark in file!");
+        printf("You haven't initialized the bookmark system yet.\nRun 'bm init' first to initialize the bookmark system!\n");
+        return 1;
+    }
+
+    fclose(file);
+
+    BookmarkNode *head = load_bookmarks();
+    BookmarkNode *target = find_bookmark(head, old_name);
+
+    if (head == NULL) {
+        printf("You don't have any bookmarks to delete yet.\n");
+        printf("Use bm add <name> <path> to add a bookmark.\n");
+        return 1;
+    }
+
+    if (target != NULL) {
+        if (!bookmark_exists(head, new_name)) {
+            strcpy(target->bookmark.name, new_name);
+
+            printf("Bookmark '%s' has been renamed successfully!\n", old_name);
+            printf("'%s' --> /%s\n.", new_name, target->bookmark.path);
+        }
+        else {
+            printf("There is already a bookmark named '%s'.\n", new_name);
+            free_bookmarks(head);
+            return 1;
+        }
+    }
+    else {
+        printf("Error: There isn't a bookmark named '%s' to rename.\n", old_name);
+        printf("Use 'bm add %s <path>' to add one.\n", old_name);
         free_bookmarks(head);
         return 1;
     }

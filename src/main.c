@@ -47,6 +47,15 @@ int main(int argc, char *argv[]) {
             return 1;
         }
     }
+    else if (strcmp(command, "rename") == 0) {
+        if (argc == 4) {
+            rename_bookmark(argv[2], argv[3]);
+        }
+        else {
+            printf("'rename' usage: bm rename <current_name> <new_name>\n");
+            return 1;
+        }
+    }
     // else if (strcmp(command, "go") == 0) {
     //
     // }
