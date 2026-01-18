@@ -1,4 +1,6 @@
 #include "bookmarks.h"
+
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -7,6 +9,7 @@
 static void free_bookmarks(BookmarkNode *head);
 static BookmarkNode *load_bookmarks(void);
 static int save_bookmarks(BookmarkNode *head);
+static void trim_trailing_space(char *name);
 static BookmarkNode *find_bookmark(BookmarkNode *head, char *name);
 static int bookmark_exists(BookmarkNode *head, char *name);
 
@@ -46,29 +49,55 @@ int init_bookmark(void) {
 }
 
 int add_bookmark(char *name, char *path) {
-    FILE *file = fopen(BOOKMARK_FILE, "a");
+    FILE *file = fopen(BOOKMARK_FILE, "r");
 
     if (file == NULL) {
         printf("Error adding bookmark to file!");
         printf("You haven't initialized the bookmark system yet.\nRun 'bm init' first to initialize the bookmark system!\n");
         return 1;
     }
-    else {
-        if (strlen(name) > MAX_NAME) {
-            printf("The bookmark name is too long. Try again.\n");
-            return 1;
-        }
-        else if (strlen(path) > MAX_PATH) {
-            printf("The directory path is too long. Try again.\n");
-            return 1;
-        }
 
-        fprintf(file, "%-15s\t%s\n", name, path);
-        fclose(file);
+    fclose(file);
 
-        printf("Bookmark added successfully!\n");
-        return 0;
+    if (strlen(name) > MAX_NAME) {
+        printf("The bookmark name is too long. Try again.\n");
+        return 1;
     }
+
+    if (strlen(path) > MAX_PATH) {
+        printf("The directory path is too long. Try again.\n");
+        return 1;
+    }
+
+    BookmarkNode *head = load_bookmarks();
+
+    if (bookmark_exists(head, name)) {
+        printf("Error: A bookmark named '%s' already exists --> /%s.\n", name, find_bookmark(head, name)->bookmark.path);
+        printf("Try using a different name.\n");
+        free_bookmarks(head);
+        return 1;
+    }
+
+    BookmarkNode *added_bookmark = malloc(sizeof(BookmarkNode));
+    strcpy(added_bookmark->bookmark.name,name);
+    strcpy(added_bookmark->bookmark.path,path);
+    added_bookmark->next = NULL;
+
+    if (head == NULL) {
+        head = added_bookmark;
+    }
+    else {
+        BookmarkNode *temp = head;
+        while (temp->next != NULL) {
+            temp = temp->next;
+        }
+        temp->next = added_bookmark;
+    }
+
+    save_bookmarks(head);
+    free_bookmarks(head);
+    printf("Bookmark added successfully!\n");
+    return 0;
 }
 
 int list_bookmarks(void) {
@@ -98,6 +127,7 @@ int list_bookmarks(void) {
     }
 }
 
+// Helper functions
 static void free_bookmarks(BookmarkNode *head) {
     BookmarkNode *temp = head;
 
@@ -128,6 +158,9 @@ static BookmarkNode *load_bookmarks(void) {
                     free_bookmarks(head);
                     return NULL;
                 }
+
+                trim_trailing_space(name);
+
                 strcpy(bookmark_node->bookmark.name, name);
                 strcpy(bookmark_node->bookmark.path, path);
                 bookmark_node->next = NULL;
@@ -165,6 +198,15 @@ static int save_bookmarks(BookmarkNode *head) {
 
     fclose(file);
     return 0;
+}
+
+static void trim_trailing_space(char *name) {
+    for (int i = 0, len = strlen(name); i < len; i++) {
+        if (isspace(name[i])) {
+            name[i] = '\0';
+            break;
+        }
+    }
 }
 
 static BookmarkNode *find_bookmark(BookmarkNode *head, char *name) {
