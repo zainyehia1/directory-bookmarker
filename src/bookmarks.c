@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+#include <unistd.h>
 
 // Helper functions
 static void free_bookmarks(BookmarkNode *head);
@@ -13,6 +14,7 @@ static int save_bookmarks(BookmarkNode *head);
 static void trim_trailing_space(char *name);
 static BookmarkNode *find_bookmark(BookmarkNode *head, char *name);
 static bool bookmark_exists(BookmarkNode *head, char *name);
+static bool is_valid_path(char *path);
 
 void print_helper(void) {
     printf("Usage: bm <command> [<args>]\n");
@@ -317,4 +319,8 @@ static BookmarkNode *find_bookmark(BookmarkNode *head, char *name) {
 
 static bool bookmark_exists(BookmarkNode *head, char *name) {
     return find_bookmark(head, name) != NULL;
+}
+
+static bool is_valid_path(char *path) {
+    return access(path, F_OK) == 0;
 }
