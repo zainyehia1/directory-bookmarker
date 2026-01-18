@@ -16,17 +16,17 @@ int main(int argc, char *argv[]) {
             init_bookmark();
         }
         else {
-            printf("init usage: bm init\n");
+            printf("'init' usage: bm init\n");
             return 1;
         }
     }
     else if (strcmp(command, "add") == 0) {
-        if (argc != 4) {
-            printf("add usage: bm add <name> <path>\n");
-            return 1;
+        if (argc == 4) {
+           add_bookmark(argv[2], argv[3]);
         }
         else {
-            add_bookmark(argv[2], argv[3]);
+            printf("'add' usage: bm add <name> <path>\n");
+            return 1;
         }
     }
     else if (strcmp(command, "list") == 0) {
@@ -34,7 +34,16 @@ int main(int argc, char *argv[]) {
             list_bookmarks();
         }
         else {
-            printf("list usage: bm list\n");
+            printf("'list' usage: bm list\n");
+            return 1;
+        }
+    }
+    else if (strcmp(command, "delete") == 0) {
+        if (argc == 3) {
+            delete_bookmark(argv[2]);
+        }
+        else {
+            printf("'delete' usage: bm delete <name>\n");
             return 1;
         }
     }

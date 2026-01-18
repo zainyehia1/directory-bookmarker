@@ -23,5 +23,6 @@ void print_helper(void);
 int init_bookmark(void);
 int add_bookmark(char *name, char *path);
 int list_bookmarks(void);
+int delete_bookmark(char *name);
 
 #endif

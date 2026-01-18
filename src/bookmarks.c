@@ -127,6 +127,54 @@ int list_bookmarks(void) {
     }
 }
 
+int delete_bookmark(char *name) {
+    FILE *file = fopen(BOOKMARK_FILE, "r");
+
+    if (file == NULL) {
+        printf("Error deleting bookmark from file!");
+        printf("You haven't initialized the bookmark system yet.\nRun 'bm init' first to initialize the bookmark system!\n");
+        return 1;
+    }
+
+    fclose(file);
+
+    BookmarkNode *head = load_bookmarks();
+    BookmarkNode *target = find_bookmark(head, name);
+
+    if (head == NULL) {
+        printf("You don't have any bookmarks to delete yet.\n");
+        printf("Use bm add <name> <path> to add a bookmark.\n");
+        return 1;
+    }
+
+    if (target != NULL) {
+        if (head == target) {
+            head = head->next;
+            free(target);
+            printf("Bookmark '%s' deleted successfully!\n", name);
+        }
+        else {
+            BookmarkNode *temp = head;
+            while (temp->next != target) {
+                temp = temp->next;
+            }
+            temp->next = target->next;
+            free(target);
+            printf("Bookmark '%s' deleted successfully!\n", name);
+        }
+    }
+    else {
+        printf("Error: There isn't a bookmark named '%s' to delete.\n", name);
+        printf("Use 'bm add %s <path>' to add one.\n", name);
+        free_bookmarks(head);
+        return 1;
+    }
+
+    save_bookmarks(head);
+    free_bookmarks(head);
+    return 0;
+}
+
 // Helper functions
 static void free_bookmarks(BookmarkNode *head) {
     BookmarkNode *temp = head;
