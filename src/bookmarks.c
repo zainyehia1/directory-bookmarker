@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 
 // Helper functions
 static void free_bookmarks(BookmarkNode *head);
@@ -11,18 +12,18 @@ static BookmarkNode *load_bookmarks(void);
 static int save_bookmarks(BookmarkNode *head);
 static void trim_trailing_space(char *name);
 static BookmarkNode *find_bookmark(BookmarkNode *head, char *name);
-static int bookmark_exists(BookmarkNode *head, char *name);
+static bool bookmark_exists(BookmarkNode *head, char *name);
 
 void print_helper(void) {
     printf("Usage: bm <command> [<args>]\n");
-    printf("Commands\n");
-    printf("  init                   Initialize bookmark system\n");
-    printf("  add <name> <path>      Add a bookmark\n");
-    printf("  delete <name>          Delete a bookmark\n");
-    printf("  list                   List all bookmarks\n");
-    printf("  rename <current_name> <new_name>          Rename a bookmark\n");
-    printf("  go <name>              Print path of a bookmark\n");
-    printf("  help                   Print this message\n");
+    printf("Commands:\n");
+    printf("  init                                  Initialize bookmark system\n");
+    printf("  add <name> <path>                     Add a bookmark\n");
+    printf("  delete <name>                         Delete a bookmark\n");
+    printf("  list                                  List all bookmarks\n");
+    printf("  rename <old_name> <new_name>          Rename a bookmark\n");
+    printf("  go <name>                             Print path of a bookmark\n");
+    printf("  help                                  Print this message\n");
 }
 
 int init_bookmark(void) {
@@ -180,7 +181,7 @@ int rename_bookmark(char *old_name, char *new_name) {
     FILE *file = fopen(BOOKMARK_FILE, "r");
 
     if (file == NULL) {
-        printf("Error editing bookmark in file!");
+        printf("Error renaming bookmark in file!");
         printf("You haven't initialized the bookmark system yet.\nRun 'bm init' first to initialize the bookmark system!\n");
         return 1;
     }
@@ -314,6 +315,6 @@ static BookmarkNode *find_bookmark(BookmarkNode *head, char *name) {
     return temp;
 }
 
-static int bookmark_exists(BookmarkNode *head, char *name) {
+static bool bookmark_exists(BookmarkNode *head, char *name) {
     return find_bookmark(head, name) != NULL;
 }
