@@ -14,6 +14,7 @@ static int save_bookmarks(BookmarkNode *head);
 static void trim_trailing_space(char *name);
 static BookmarkNode *find_bookmark(BookmarkNode *head, char *name);
 static bool bookmark_exists(BookmarkNode *head, char *name);
+static bool is_initialized(void);
 
 void print_helper(void) {
     printf("Usage: bm <command> [<args>]\n");
@@ -54,7 +55,7 @@ int init_bookmark(void) {
 int add_bookmark(char *name, char *path) {
     FILE *file = fopen(BOOKMARK_FILE, "r");
 
-    if (file == NULL) {
+    if (!is_initialized()) {
         printf("Error adding bookmark to file!");
         printf("You haven't initialized the bookmark system yet.\nRun 'bm init' first to initialize the bookmark system!\n");
         return 1;
@@ -140,15 +141,11 @@ int list_bookmarks(void) {
 }
 
 int delete_bookmark(char *name) {
-    FILE *file = fopen(BOOKMARK_FILE, "r");
-
-    if (file == NULL) {
+    if (!is_initialized()) {
         printf("Error deleting bookmark from file!");
         printf("You haven't initialized the bookmark system yet.\nRun 'bm init' first to initialize the bookmark system!\n");
         return 1;
     }
-
-    fclose(file);
 
     BookmarkNode *head = load_bookmarks();
     BookmarkNode *target = find_bookmark(head, name);
@@ -188,15 +185,12 @@ int delete_bookmark(char *name) {
 }
 
 int rename_bookmark(char *old_name, char *new_name) {
-    FILE *file = fopen(BOOKMARK_FILE, "r");
 
-    if (file == NULL) {
+    if (!is_initialized()) {
         printf("Error renaming bookmark in file!");
         printf("You haven't initialized the bookmark system yet.\nRun 'bm init' first to initialize the bookmark system!\n");
         return 1;
     }
-
-    fclose(file);
 
     BookmarkNode *head = load_bookmarks();
     BookmarkNode *target = find_bookmark(head, old_name);
@@ -327,4 +321,11 @@ static BookmarkNode *find_bookmark(BookmarkNode *head, char *name) {
 
 static bool bookmark_exists(BookmarkNode *head, char *name) {
     return find_bookmark(head, name) != NULL;
+}
+
+static bool is_initialized(void) {
+    FILE *file = fopen(BOOKMARK_FILE, "r");
+    if (file == NULL) return false;
+    fclose(file);
+    return true;
 }
