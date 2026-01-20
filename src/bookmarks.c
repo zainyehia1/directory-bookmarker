@@ -15,6 +15,7 @@ static void trim_trailing_space(char *name);
 static BookmarkNode *find_bookmark(BookmarkNode *head, char *name);
 static bool bookmark_exists(BookmarkNode *head, char *name);
 static bool is_initialized(void);
+static char *resolve_tilde(char *path);
 
 void print_helper(void) {
     printf("Usage: bm <command> [<args>]\n");
@@ -60,7 +61,6 @@ int add_bookmark(char *name, char *path) {
         return 1;
     }
 
-
     if (strlen(name) > MAX_NAME) {
         printf("The bookmark name is too long. Try again.\n");
         return 1;
@@ -71,9 +71,16 @@ int add_bookmark(char *name, char *path) {
         return 1;
     }
 
-    char *resolved_path = realpath(path, NULL);
+    char *tilde_expanded = resolve_tilde(path);
+    char *resolved_path = realpath(tilde_expanded, NULL);
+    if (tilde_expanded != path) free(tilde_expanded);
 
     if (resolved_path == NULL) {
+        if (path[0] == '~') {
+            printf("'%s' is not a valid path.\n", path);
+            printf("Tilde paths must start with '~/' (e.g., ~/Desktop)\n");
+            return 1;
+        }
         printf("'%s' is not a valid path.\n", path);
         return 1;
     }
@@ -183,7 +190,6 @@ int delete_bookmark(char *name) {
 }
 
 int rename_bookmark(char *old_name, char *new_name) {
-
     if (!is_initialized()) {
         printf("Error renaming bookmark in file!");
         printf("You haven't initialized the bookmark system yet.\nRun 'bm init' first to initialize the bookmark system!\n");
@@ -231,8 +237,16 @@ int edit_path(char *name, char *new_path) {
         return 1;
     }
 
-    char *resolved_path = realpath(new_path, NULL);
+    char *tilde_expanded = resolve_tilde(new_path);
+    char *resolved_path = realpath(tilde_expanded, NULL);
+    if (tilde_expanded != new_path) free(tilde_expanded);
+
     if (resolved_path == NULL) {
+        if (new_path[0] == '~') {
+            printf("'%s' is not a valid path.\n", new_path);
+            printf("Tilde paths must start with '~/' (e.g., ~/Desktop)\n");
+            return 1;
+        }
         printf("'%s' is not a valid path.\n", new_path);
         return 1;
     }
@@ -367,4 +381,26 @@ static bool is_initialized(void) {
     if (file == NULL) return false;
     fclose(file);
     return true;
+}
+
+static char *resolve_tilde(char *path) {
+    if (path[0] == '~') {
+        const char *home = getenv("HOME");
+        if (!home) {
+            printf("HOME environment variable is not set.\n");
+            return path;
+        }
+
+        const char *path_after_tilde = path + 1;
+        char *resolved_path = malloc(strlen(home) + strlen(path_after_tilde) + 1);
+        if (!resolved_path) return NULL;
+
+        strcpy(resolved_path, home);
+
+        strcat(resolved_path, path_after_tilde);
+        return resolved_path;
+    }
+    else {
+        return path;
+    }
 }
