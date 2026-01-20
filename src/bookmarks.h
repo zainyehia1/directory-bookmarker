@@ -26,5 +26,6 @@ int list_bookmarks(void);
 int delete_bookmark(char *name);
 int rename_bookmark(char *old_name, char *new_name);
 int edit_path(char *name, char *new_path);
+int go(char *name);
 
 #endif

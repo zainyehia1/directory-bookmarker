@@ -279,6 +279,34 @@ int edit_path(char *name, char *new_path) {
     return 0;
 }
 
+int go(char *name) {
+    if (!is_initialized()) {
+        printf("You haven't initialized the bookmark system yet.\nRun 'bm init' first to initialize the bookmark system!\n");
+        return 1;
+    }
+
+    BookmarkNode *head = load_bookmarks();
+    BookmarkNode *target = find_bookmark(head, name);
+
+    if (head == NULL) {
+        printf("You don't have any bookmarks to delete yet.\n");
+        printf("Use bm add <name> <path> to add a bookmark.\n");
+        return 1;
+    }
+
+    if (target) {
+        printf("%s\n", target->bookmark.path);
+    }
+    else {
+        printf("'%s' is not a valid bookmark.\n", name);
+        free_bookmarks(head);
+        return 1;
+    }
+
+    free_bookmarks(head);
+    return 0;
+}
+
 // Helper functions
 static void free_bookmarks(BookmarkNode *head) {
     BookmarkNode *temp = head;

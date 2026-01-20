@@ -65,9 +65,15 @@ int main(int argc, char *argv[]) {
             return 1;
         }
     }
-    // else if (strcmp(command, "go") == 0) {
-    //
-    // }
+    else if (strcmp(command, "go") == 0) {
+        if (argc == 3) {
+            go(argv[2]);
+        }
+        else {
+            printf("'go' usage: bm go <name>\n");
+            return 1;
+        }
+    }
     else if (strcmp(command, "help") == 0) {
         print_helper();
     }
