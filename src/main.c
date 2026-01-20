@@ -56,6 +56,15 @@ int main(int argc, char *argv[]) {
             return 1;
         }
     }
+    else if (strcmp(command, "edit") == 0) {
+        if (argc == 4) {
+            edit_path(argv[2], argv[3]);
+        }
+        else {
+            printf("'edit' usage: bm edit <name> <new_path>\n");
+            return 1;
+        }
+    }
     // else if (strcmp(command, "go") == 0) {
     //
     // }

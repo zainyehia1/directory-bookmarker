@@ -24,6 +24,7 @@ void print_helper(void) {
     printf("  delete <name>                         Delete a bookmark\n");
     printf("  list                                  List all bookmarks\n");
     printf("  rename <old_name> <new_name>          Rename a bookmark\n");
+    printf("  edit <name> <new_path>                Edit a bookmark's path\n");
     printf("  go <name>                             Print path of a bookmark\n");
     printf("  help                                  Print this message\n");
 }
@@ -53,15 +54,12 @@ int init_bookmark(void) {
 }
 
 int add_bookmark(char *name, char *path) {
-    FILE *file = fopen(BOOKMARK_FILE, "r");
-
     if (!is_initialized()) {
         printf("Error adding bookmark to file!");
         printf("You haven't initialized the bookmark system yet.\nRun 'bm init' first to initialize the bookmark system!\n");
         return 1;
     }
 
-    fclose(file);
 
     if (strlen(name) > MAX_NAME) {
         printf("The bookmark name is too long. Try again.\n");
@@ -217,6 +215,47 @@ int rename_bookmark(char *old_name, char *new_name) {
     else {
         printf("Error: There isn't a bookmark named '%s' to rename.\n", old_name);
         printf("Use 'bm add %s <path>' to add one.\n", old_name);
+        free_bookmarks(head);
+        return 1;
+    }
+
+    save_bookmarks(head);
+    free_bookmarks(head);
+    return 0;
+}
+
+int edit_path(char *name, char *new_path) {
+    if (!is_initialized()) {
+        printf("Error editing bookmark path in file!");
+        printf("You haven't initialized the bookmark system yet.\nRun 'bm init' first to initialize the bookmark system!\n");
+        return 1;
+    }
+
+    char *resolved_path = realpath(new_path, NULL);
+    if (resolved_path == NULL) {
+        printf("'%s' is not a valid path.\n", new_path);
+        return 1;
+    }
+
+    BookmarkNode *head = load_bookmarks();
+    BookmarkNode *target = find_bookmark(head, name);
+
+    if (head == NULL) {
+        printf("You don't have any bookmarks to delete yet.\n");
+        printf("Use bm add <name> <path> to add a bookmark.\n");
+        return 1;
+    }
+
+    if (target != NULL) {
+        strcpy(target->bookmark.path, resolved_path);
+        printf("Bookmark '%s' has been edited successfully!\n", name);
+        printf("'%s' --> %s\n.", name, resolved_path);
+        free(resolved_path);
+    }
+    else {
+        printf("Error: There isn't a bookmark named '%s' to edit.\n", name);
+        printf("Use 'bm add %s %s to add it.\n", name, resolved_path);
+        free(resolved_path);
         free_bookmarks(head);
         return 1;
     }
