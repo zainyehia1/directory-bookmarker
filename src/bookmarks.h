@@ -2,6 +2,7 @@
 
 #define BOOKMARKS_H
 
+#define BOOKMARK_DIRECTORY "/.bm/"
 #define BOOKMARK_FILE "bookmarks.tsv"
 
 #define MAX_NAME 16
