@@ -37,8 +37,8 @@ int init_bookmark(void) {
     char *dir_path = get_bookmark_dir_path();
     if (access(dir_path, F_OK) != 0) {
         mkdir(dir_path, 0700);
-        free(dir_path);
     }
+    free(dir_path);
 
     char *path = get_bookmark_file_path();
     FILE *file = fopen(path, "r");
