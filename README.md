@@ -188,3 +188,6 @@ Commands:
    * Timestamps and access counts could be added to enable recent-usage sorting which can come in handy.
 
 2. **Optional readability enhancing colorized output may be added.**
+
+## License
+This project is licensed under the MIT License.
