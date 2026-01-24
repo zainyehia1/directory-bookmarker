@@ -67,38 +67,59 @@ aliases or relying on auto-learning tools.
 
 ```bash
 $ bm init
+```
+
+```text
 Bookmark system initialized!
 ```
 
 **Add bookmarks:**
 ```bash
-$ bm add desk ~/Desktop
-Bookmark added successfully!
+$ bm add desk ~/Desktop      # Using tilde expansion
+```
 
-$ bm add work /home/user/Documents/Work
+```text
+Bookmark added successfully!
+```
+
+```bash
+$ bm add work /home/user/Documents/Work   # Using absolute path
+```
+
+```text
 Bookmark added successfully!
 ```
 
 **List bookmarks:**
 ```bash
 $ bm list
---------------------------------------------
-|Bookmark Name          Directory Path     |
---------------  ----------------------------
-desk            /home/user/Desktop
-work            /home/user/Documents/Work
+```
+
+```text
++------------------+---------------------------+
+| Bookmark Name    | Directory Path            |
++------------------+---------------------------+
+| desk             | /home/user/Desktop        |  # Tilde resolved to absolute path
+| work             | /home/user/Downloads/Work |
++------------------+---------------------------+
 ```
 
 **Rename bookmarks:**
 ```bash
-$ bm rename desk desktop 
+$ bm rename desk desktop
+```
+
+```text
 Bookmark 'desk' has been renamed successfully!
 'desktop' --> /home/user/Desktop
 ```
 
 **Edit bookmarks:**
 ```bash
-$ bm edit work ~/Documents/MyCompany/Work 
+$ bm edit work ~/Documents/MyCompany/Work
+```
+
+```text
 Bookmark 'work' has been edited successfully!
 'work' --> /home/user/Documents/MyCompany/Work 
 ```
@@ -106,19 +127,31 @@ Bookmark 'work' has been edited successfully!
 **Delete bookmarks:**
 ```bash
 $ bm delete desktop
+```
+
+```text
 Bookmark 'desktop' deleted successfully!
 ```
 
 **Navigate to a bookmarked directory:**
 ```bash
 $ bm go work
+```
+
+```bash
 $ pwd
-/home/user/Documents/[Company]/Work
+```
+
+```text
+/home/user/Documents/MyCompany/Work
 ```
 
 **Check usage and valid commands:**
 ```bash
 $ bm help
+```
+
+```text
 Usage: bm <command> [<args>]
 Commands:
   init                                  Initialize bookmark system
@@ -179,6 +212,7 @@ Commands:
   * I chose this because this wouldn't be an issue for most users and it saves some memory.
   * An alternative would be `PATH_MAX` (4096) from `<linux/limits.h>`
 - Manual edits to the bookmark file are not validated.
+- Incompatibility with Windows.
 
 ## Future Improvements
 
