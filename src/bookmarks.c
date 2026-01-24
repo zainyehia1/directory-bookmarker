@@ -132,32 +132,56 @@ int add_bookmark(char *name, char *path) {
 }
 
 int list_bookmarks(void) {
-    char *path = get_bookmark_file_path();
-    FILE *file = fopen(path, "r");
-    if (file == NULL) {
+    if (!is_initialized()) {
         printf("You haven't initialized the bookmark system yet.\nRun 'bm init' first to initialize the bookmark system!\n");
-        free(path);
         return 1;
     }
-    else {
-        char line [MAX_LINE];
 
-        fgets(line, MAX_LINE, file);
-        char *bookmark_name = strtok(line,"\t");
-        char *directory_path = strtok(NULL, "\n");
-        printf("--------------------------------------------\n");
-        printf("|%s\t\t%s     |\n", bookmark_name, directory_path);
-        printf("--------------\t----------------------------\n");
+    BookmarkNode *head = load_bookmarks();
 
-
-        while (fgets(line, MAX_LINE, file) != NULL) {
-            char *bookmark = strtok(line,"\t");
-            char *directory = strtok(NULL, "\n");
-            printf("%s\t%s\n", bookmark, directory);
-        }
-        fclose(file);
+    if (head == NULL) {
+        printf("+------------------+------------------+\n");
+        printf("| Bookmark Name    | Directory Path   |\n");
+        printf("+------------------+------------------+\n");
+        printf("| No bookmarks yet                    |\n");
+        printf("+------------------+------------------+\n");
         return 0;
     }
+
+    int longest_path = strlen(head->bookmark.path);
+
+    BookmarkNode *temp = head;
+    while (temp != NULL) {
+        int len = strlen(temp->bookmark.path);
+        if (len > longest_path) longest_path = len;
+        temp = temp->next;
+    }
+
+    printf("+------------------+");
+    for (int i = 0; i < longest_path + 2; i++) {
+        printf("-");
+    }
+    printf("+\n");
+    printf("| %-16s | %-*s |\n", "Bookmark Name", longest_path, "Directory Path");
+    printf("+------------------+");
+    for (int i = 0; i < longest_path + 2; i++) {
+        printf("-");
+    }
+    printf("+\n");
+
+    temp = head;
+    while (temp != NULL) {
+        printf("| %-16s | %-*s |\n", temp->bookmark.name, longest_path, temp->bookmark.path);
+        temp = temp->next;
+    }
+    printf("+------------------+");
+    for (int i = 0; i < longest_path + 2; i++) {
+        printf("-");
+    }
+    printf("+\n");
+
+    free_bookmarks(head);
+    return 0;
 }
 
 int delete_bookmark(char *name) {
