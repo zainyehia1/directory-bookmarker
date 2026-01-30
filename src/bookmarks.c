@@ -35,32 +35,40 @@ void print_helper(void) {
 
 int init_bookmark(void) {
     char *dir_path = get_bookmark_dir_path();
+    if (!dir_path) {
+        printf("Error initializing bookmark system!\n");
+        return 1;
+    }
     if (access(dir_path, F_OK) != 0) {
         mkdir(dir_path, 0700);
     }
     free(dir_path);
 
-    char *path = get_bookmark_file_path();
-    FILE *file = fopen(path, "r");
+    char *file_path = get_bookmark_file_path();
+    if (!file_path) {
+        printf("Error initializing bookmark system!\n");
+        return 1;
+    }
+    FILE *file = fopen(file_path, "r");
     if (file == NULL) {
-        file = fopen(path, "w");
+        file = fopen(file_path, "w");
         if (file != NULL) {
             fprintf(file, "Bookmark Name\tDirectory Path\n");
             fclose(file);
-            free(path);
+            free(file_path);
 
             printf("Bookmark system initialized!\n");
             return 0;
         }
         else {
             printf("Error initializing bookmark system!\n");
-            free(path);
+            free(file_path);
             return 1;
         }
     }
     else {
         fclose(file);
-        free(path);
+        free(file_path);
 
         printf("Bookmark system already initialized!\n");
         return 0;
@@ -70,21 +78,26 @@ int init_bookmark(void) {
 int add_bookmark(char *name, char *path) {
     if (!is_initialized()) {
         printf("Error adding bookmark to file!\n");
-        printf("You haven't initialized the bookmark system yet.\nRun 'bm init' first to initialize the bookmark system!\n");
+        printf("You haven't initialized the bookmark system yet.\n");
+        printf("Run 'bm init' first to initialize the bookmark system!\n");
         return 1;
     }
 
-    if (strlen(name) > MAX_NAME) {
+    if (strlen(name) >= MAX_NAME) {
         printf("The bookmark name is too long. Try again.\n");
         return 1;
     }
 
-    if (strlen(path) > MAX_PATH) {
+    if (strlen(path) >= MAX_PATH) {
         printf("The directory path is too long. Try again.\n");
         return 1;
     }
 
     char *tilde_expanded = resolve_tilde(path);
+    if (!tilde_expanded) {
+        printf("Error: Could not resolve the path.\n");
+        return 1;
+    }
     char *resolved_path = realpath(tilde_expanded, NULL);
     if (tilde_expanded != path) free(tilde_expanded);
 
@@ -101,7 +114,7 @@ int add_bookmark(char *name, char *path) {
     BookmarkNode *head = load_bookmarks();
 
     if (bookmark_exists(head, name)) {
-        printf("Error: A bookmark named '%s' already exists --> %s.\n", name, find_bookmark(head, name)->bookmark.path);
+        printf("Error: A bookmark named '%s' already exists --> %s\n", name, find_bookmark(head, name)->bookmark.path);
         printf("Try using a different name.\n");
         free(resolved_path);
         free_bookmarks(head);
@@ -109,6 +122,12 @@ int add_bookmark(char *name, char *path) {
     }
 
     BookmarkNode *added_bookmark = malloc(sizeof(BookmarkNode));
+    if (!added_bookmark) {
+        printf("Failed to add bookmark: not enough system memory.\n");
+        free(resolved_path);
+        free_bookmarks(head);
+        return 1;
+    }
     strcpy(added_bookmark->bookmark.name, name);
     strcpy(added_bookmark->bookmark.path, resolved_path);
     free(resolved_path);
@@ -133,7 +152,8 @@ int add_bookmark(char *name, char *path) {
 
 int list_bookmarks(void) {
     if (!is_initialized()) {
-        printf("You haven't initialized the bookmark system yet.\nRun 'bm init' first to initialize the bookmark system!\n");
+        printf("You haven't initialized the bookmark system yet.\n");
+        printf("Run 'bm init' first to initialize the bookmark system!\n");
         return 1;
     }
 
@@ -141,9 +161,9 @@ int list_bookmarks(void) {
 
     if (head == NULL) {
         printf("+------------------+------------------+\n");
-        printf("| Bookmark Name    | Directory Path   |\n");
+        printf("|  Bookmark Name   |  Directory Path  |\n");
         printf("+------------------+------------------+\n");
-        printf("| No bookmarks yet                    |\n");
+        printf("|          No bookmarks yet           |\n");
         printf("+------------------+------------------+\n");
         return 0;
     }
@@ -162,7 +182,7 @@ int list_bookmarks(void) {
         printf("-");
     }
     printf("+\n");
-    printf("| %-16s | %-*s |\n", "Bookmark Name", longest_path, "Directory Path");
+    printf("| %-15s | %-*s |\n", " Bookmark Name", longest_path, "Directory Path");
     printf("+------------------+");
     for (int i = 0; i < longest_path + 2; i++) {
         printf("-");
@@ -171,7 +191,7 @@ int list_bookmarks(void) {
 
     temp = head;
     while (temp != NULL) {
-        printf("| %-16s | %-*s |\n", temp->bookmark.name, longest_path, temp->bookmark.path);
+        printf("| %-15s | %-*s |\n", temp->bookmark.name, longest_path, temp->bookmark.path);
         temp = temp->next;
     }
     printf("+------------------+");
@@ -187,7 +207,8 @@ int list_bookmarks(void) {
 int delete_bookmark(char *name) {
     if (!is_initialized()) {
         printf("Error deleting bookmark from file!\n");
-        printf("You haven't initialized the bookmark system yet.\nRun 'bm init' first to initialize the bookmark system!\n");
+        printf("You haven't initialized the bookmark system yet.\n");
+        printf("Run 'bm init' first to initialize the bookmark system!\n");
         return 1;
     }
 
@@ -195,8 +216,8 @@ int delete_bookmark(char *name) {
     BookmarkNode *target = find_bookmark(head, name);
 
     if (head == NULL) {
-        printf("You don't have any bookmarks to delete yet.\n");
-        printf("Use bm add <name> <path> to add a bookmark.\n");
+        printf("You don't have any bookmarks yet.\n");
+        printf("Use bm add <name> <path> to add one.\n");
         return 1;
     }
 
@@ -231,7 +252,8 @@ int delete_bookmark(char *name) {
 int rename_bookmark(char *old_name, char *new_name) {
     if (!is_initialized()) {
         printf("Error renaming bookmark in file!\n");
-        printf("You haven't initialized the bookmark system yet.\nRun 'bm init' first to initialize the bookmark system!\n");
+        printf("You haven't initialized the bookmark system yet.\n");
+        printf("Run 'bm init' first to initialize the bookmark system!\n");
         return 1;
     }
 
@@ -239,17 +261,22 @@ int rename_bookmark(char *old_name, char *new_name) {
     BookmarkNode *target = find_bookmark(head, old_name);
 
     if (head == NULL) {
-        printf("You don't have any bookmarks to delete yet.\n");
-        printf("Use bm add <name> <path> to add a bookmark.\n");
+        printf("You don't have any bookmarks yet.\n");
+        printf("Use bm add <name> <path> to add one.\n");
         return 1;
     }
 
     if (target != NULL) {
         if (!bookmark_exists(head, new_name)) {
+            if (strlen(new_name) >= MAX_NAME) {
+                printf("The new bookmark name is too long. Try again\n");
+                free_bookmarks(head);
+                return 1;
+            }
             strcpy(target->bookmark.name, new_name);
 
             printf("Bookmark '%s' has been renamed successfully!\n", old_name);
-            printf("'%s' --> %s\n.", new_name, target->bookmark.path);
+            printf("'%s' --> %s\n", new_name, target->bookmark.path);
         }
         else {
             printf("There is already a bookmark named '%s'.\n", new_name);
@@ -272,11 +299,16 @@ int rename_bookmark(char *old_name, char *new_name) {
 int edit_path(char *name, char *new_path) {
     if (!is_initialized()) {
         printf("Error editing bookmark path in file!\n");
-        printf("You haven't initialized the bookmark system yet.\nRun 'bm init' first to initialize the bookmark system!\n");
+        printf("You haven't initialized the bookmark system yet.\n");
+        printf("Run 'bm init' first to initialize the bookmark system!\n");
         return 1;
     }
 
     char *tilde_expanded = resolve_tilde(new_path);
+    if (!tilde_expanded) {
+        printf("Error: Could not resolve the path.\n");
+        return 1;
+    }
     char *resolved_path = realpath(tilde_expanded, NULL);
     if (tilde_expanded != new_path) free(tilde_expanded);
 
@@ -294,15 +326,21 @@ int edit_path(char *name, char *new_path) {
     BookmarkNode *target = find_bookmark(head, name);
 
     if (head == NULL) {
-        printf("You don't have any bookmarks to delete yet.\n");
-        printf("Use bm add <name> <path> to add a bookmark.\n");
+        printf("You don't have any bookmarks yet.\n");
+        printf("Use bm add <name> <path> to add one.\n");
         return 1;
     }
 
     if (target != NULL) {
+        if (strlen(resolved_path) >= MAX_PATH) {
+            printf("The new directory path is too long. Try again.\n");
+            free(resolved_path);
+            free_bookmarks(head);
+            return 1;
+        }
         strcpy(target->bookmark.path, resolved_path);
         printf("Bookmark '%s' has been edited successfully!\n", name);
-        printf("'%s' --> %s\n.", name, resolved_path);
+        printf("'%s' --> %s\n", name, resolved_path);
         free(resolved_path);
     }
     else {
@@ -328,8 +366,8 @@ int go(char *name) {
     BookmarkNode *target = find_bookmark(head, name);
 
     if (head == NULL) {
-        fprintf(stderr, "You don't have any bookmarks to delete yet.\n");
-        fprintf(stderr, "Use bm add <name> <path> to add a bookmark.\n");
+        fprintf(stderr, "You don't have any bookmarks yet.\n");
+        fprintf(stderr, "Use bm add <name> <path> to add one.\n");
         return 1;
     }
 
@@ -347,6 +385,10 @@ int go(char *name) {
 }
 
 // Helper functions
+
+/*
+ * Frees all bookmarks in the linked list.
+ */
 static void free_bookmarks(BookmarkNode *head) {
     BookmarkNode *temp = head;
 
@@ -357,11 +399,16 @@ static void free_bookmarks(BookmarkNode *head) {
     }
 }
 
+/*
+ * Load bookmarks from bookmarks.tsv file into  linked list.
+ * Returns head of list, or NULL if file doesn't exist or if file is empty.
+ * Caller must free the returned list using free_bookmarks.
+ */
 static BookmarkNode *load_bookmarks(void) {
     BookmarkNode *head = NULL;
-    char *path = get_bookmark_file_path();
+    char *file_path = get_bookmark_file_path();
 
-    FILE *file = fopen(path, "r");
+    FILE *file = fopen(file_path, "r");
     if (file != NULL) {
         char line [MAX_LINE];
 
@@ -374,9 +421,9 @@ static BookmarkNode *load_bookmarks(void) {
             if (name != NULL && path != NULL){
                 BookmarkNode *bookmark_node = malloc(sizeof(BookmarkNode));
                 if (bookmark_node == NULL) {
-                    printf("Unable to allocate memory for a BookmarkNode.\n");
+                    printf("Failed to load bookmarks due to insufficient memory.\n");
                     free_bookmarks(head);
-                    free(path);
+                    free(file_path);
                     return NULL;
                 }
 
@@ -398,11 +445,15 @@ static BookmarkNode *load_bookmarks(void) {
             }
         }
         fclose(file);
-        free(path);
+        free(file_path);
     }
     return head;
 }
 
+/*
+ * Overwrites bookmarks.tsv with the modified bookmarks from the linked list.
+ * Returns 0 on success, 1 on error.
+ */
 static int save_bookmarks(BookmarkNode *head) {
     char *path = get_bookmark_file_path();
     FILE *file = fopen(path, "w");
@@ -425,6 +476,10 @@ static int save_bookmarks(BookmarkNode *head) {
     return 0;
 }
 
+/*
+ * Removes trailing whitespace from bookmark names.
+ * Needed because TSV file uses fixed-width padding for alignment.
+ */
 static void trim_trailing_space(char *name) {
     for (int i = 0, len = strlen(name); i < len; i++) {
         if (isspace(name[i])) {
@@ -445,10 +500,18 @@ static BookmarkNode *find_bookmark(BookmarkNode *head, char *name) {
     return temp;
 }
 
+/*
+ * Checks if the bookmark exists.
+ * Returns true if it exists, false otherwise.
+ */
 static bool bookmark_exists(BookmarkNode *head, char *name) {
     return find_bookmark(head, name) != NULL;
 }
 
+/*
+ * Checks if the bookmark system has been initialized.
+ * Returns true if it is initialized, false otherwise.
+ */
 static bool is_initialized(void) {
     char *path = get_bookmark_file_path();
     FILE *file = fopen(path, "r");
@@ -461,6 +524,11 @@ static bool is_initialized(void) {
     return true;
 }
 
+/*
+ * Expands ~ to HOME.
+ * Returns string of absolute path if path starts with ~.
+ * Otherwise, the original path's string is returned.
+ */
 static char *resolve_tilde(char *path) {
     if (path[0] == '~') {
         const char *home = getenv("HOME");
@@ -483,6 +551,10 @@ static char *resolve_tilde(char *path) {
     }
 }
 
+/*
+ * Returns the path to bookmarks.tsv.
+ * If the HOME environment variable is not set, NULL is returned.
+ */
 static char *get_bookmark_file_path(void) {
     const char *home = getenv("HOME");
     if (!home) {
@@ -490,13 +562,17 @@ static char *get_bookmark_file_path(void) {
         return NULL;
     }
 
-    char *path = malloc(strlen(home) + strlen(BOOKMARK_DIRECTORY) + strlen(BOOKMARK_FILE) + 1); //home + "/.bm/bookmarks.tsv" + 1
-    if (!path) return NULL;
+    char *file_path = malloc(strlen(home) + strlen(BOOKMARK_DIRECTORY) + strlen(BOOKMARK_FILE) + 1); //home + "/.bm/bookmarks.tsv" + null terminator
+    if (!file_path) return NULL;
 
-    sprintf(path, "%s/.bm/bookmarks.tsv", home);
-    return path;
+    sprintf(file_path, "%s/.bm/bookmarks.tsv", home);
+    return file_path;
 }
 
+/*
+ * Returns the path to /.bm/ unless the HOME environment variable is not set
+ * If it is not set, then NULL is returned
+ */
 static char *get_bookmark_dir_path(void) {
     const char *home = getenv("HOME");
     if (!home) {
@@ -504,7 +580,7 @@ static char *get_bookmark_dir_path(void) {
         return NULL;
     }
 
-    char *dir_path = malloc(strlen(home) + strlen(BOOKMARK_DIRECTORY) + strlen(BOOKMARK_FILE) + 1); //home + "/.bm/bookmarks.tsv" + 1
+    char *dir_path = malloc(strlen(home) + strlen(BOOKMARK_DIRECTORY) + 1); //home + "/.bm/" + null terminator
     if (!dir_path) return NULL;
 
     sprintf(dir_path, "%s/.bm", home);
