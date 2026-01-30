@@ -96,12 +96,12 @@ $ bm list
 ```
 
 ```text
-+------------------+---------------------------+
-| Bookmark Name    | Directory Path            |
-+------------------+---------------------------+
-| desk             | /home/user/Desktop        |  # Tilde resolved to absolute path
-| work             | /home/user/Downloads/Work |
-+------------------+---------------------------+
++-----------------+---------------------------+
+|  Bookmark Name  | Directory Path            |
++-----------------+---------------------------+
+| desk            | /home/user/Desktop        |  # Tilde resolved to absolute path
+| work            | /home/user/Downloads/Work |
++-----------------+---------------------------+
 ```
 
 **Rename bookmarks:**
