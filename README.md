@@ -163,6 +163,28 @@ Commands:
   go <name>                             Print path of a bookmark
   help                                  Print this message
 ```
+## Tips
+
+**Bookmark your current directory:**
+```bash
+cd /home/user/projects/my-app
+bm add myapp .
+```
+
+```text
+Bookmark added successfully!
+```
+
+**Bookmark relative paths (resolved to absolute):**
+```bash
+bm add parent ../
+bm add sibling ../other-project
+```
+
+```text
+Bookmark added successfully!
+```
+
 
 ## How It Works
 
