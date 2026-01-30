@@ -1,7 +1,7 @@
 # Directory Bookmarker (bm)
 A lightweight command-line tool for bookmarking directories, enabling instant navigation. You don't have to repeatedly type long paths anymore!
 
-Bookmark your important directories once, and jump to them instantly from anywhere in your file system.
+Bookmark your important directories once, and go to them instantly from anywhere in your file system.
 
 Built for developers and terminal users who frequently navigate through multiple directories and projects and need fast, reliable directory navigation without maintaining dozens of shell
 aliases or relying on auto-learning tools.
@@ -10,7 +10,7 @@ aliases or relying on auto-learning tools.
 
 ***bm provides essential bookmark management with Unix-style simplicity.***
 
-- **Quick navigation** - Quickly navigate to any bookmarked directory instantly with `bm go <name>` from anywhere in your file system
+- **Quick navigation** - Go to any bookmarked directory instantly using `bm go <name>` from anywhere in your file system
 - **Add bookmarks** - Save directories with memorable names (supports tilde expansion like `~/Desktop`)
 - **List bookmarks** - View all saved shortcuts with their full paths
 - **Rename bookmarks** - Change bookmark names without losing the path
@@ -21,7 +21,7 @@ aliases or relying on auto-learning tools.
 
 ## Installation
 
-`bm` requires a UNIX-based system (Linux, macOS, WSL) and a C compiler.
+`bm` requires a Unix-like system (Linux, macOS, WSL) and a C compiler.
 
 #### Steps:
 1. **Clone and Compile:**
@@ -51,7 +51,7 @@ aliases or relying on auto-learning tools.
    fi
    }
    ```
-   * Reload your shell: `source ~/.bashrc`
+   * Reload your shell: `source ~/.bashrc` or `source ~/.zshrc`
 
 
 4. **Verify Installation:**
