@@ -14,6 +14,7 @@ bookmarks.o: src/bookmarks.c
 install: bm
 	@mkdir -p $(HOME)/bin
 	@cp bm $(HOME)/bin/
+	@echo export PATH="$(PATH):$(HOME)/bin"
 	@echo "bm installed to $(HOME)/bin/"
 	@echo "Make sure $(HOME)/bin is in your PATH"
 
