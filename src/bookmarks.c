@@ -177,13 +177,13 @@ int list_bookmarks(void) {
         temp = temp->next;
     }
 
-    printf("+------------------+");
+    printf("+-----------------+");
     for (int i = 0; i < longest_path + 2; i++) {
         printf("-");
     }
     printf("+\n");
     printf("| %-15s | %-*s |\n", " Bookmark Name", longest_path, "Directory Path");
-    printf("+------------------+");
+    printf("+-----------------+");
     for (int i = 0; i < longest_path + 2; i++) {
         printf("-");
     }
@@ -194,7 +194,7 @@ int list_bookmarks(void) {
         printf("| %-15s | %-*s |\n", temp->bookmark.name, longest_path, temp->bookmark.path);
         temp = temp->next;
     }
-    printf("+------------------+");
+    printf("+-----------------+");
     for (int i = 0; i < longest_path + 2; i++) {
         printf("-");
     }
