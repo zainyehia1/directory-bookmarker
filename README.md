@@ -25,29 +25,50 @@ aliases or relying on auto-learning tools.
 
 #### Steps:
 1. **Clone and Compile:**
-   * Clone the repo: `git clone https://github.com/zainyehia1/directory-bookmarker.git`
-   * `cd directory-bookmarker`
-   * Run: `make`
-
+   * Clone the repository:
+     ```bash
+     git clone https://github.com/zainyehia1/directory-bookmarker.git
+     ```
+   * Enter the project directory:
+     ```bash
+     cd directory-bookmarker
+     ```
+   * Compile:
+     ```bash
+     make
+     ```
 
 2. **Install:** 
-   * Run: `make install`
+   * Run:
+     ```bash
+     make install
+     ```
        * This creates a `bin` folder in your `Home` directory which contains the `bm` binary.
      
 
-3. **Shell Function:**
+3. **Shell Function (required for `bm go`):**
     * This shell function is required for `bm go` to change your current directory.
-    * Add this to your `.bashrc` (or `.zshrc` for zsh):
-   ```bash 
+   #### Option 1: Add automatically
+   Run this in your terminal:
+    ```bash
+    echo 'bm() {
+        if [ "$1" = "go" ]; then
+            local path=$(command bm go "$2")
+            [ -n "$path" ] && cd "$path"
+        else
+            command bm "$@"
+        fi
+    }' >> ~/.bashrc  # or ~/.zshrc for Zsh
+    ```
+   #### Option 2: Add manually
+   Add this function to your .bashrc (or .zshrc for Zsh):
+   ```bash
    bm() {
-   # Check first argument
    if [ "$1" = "go" ]; then
-   # It's a 'go' command - special handling
-   local path=$(command bm go "$2")  # Run C program, capture output
-   [ -n "$path" ] && cd "$path"       # If path exists, cd to it
+       local path=$(command bm go "$2")
+       [ -n "$path" ] && cd "$path"      
    else
-   # Not 'go' - just pass to C program
-   command bm "$@"  # Pass all arguments
+       command bm "$@" 
    fi
    }
    ```
