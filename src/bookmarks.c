@@ -113,12 +113,14 @@ int add_bookmark(char *name, char *path) {
 
     BookmarkNode *head = load_bookmarks();
 
-    if (bookmark_exists(head, name)) {
-        printf("Error: A bookmark named '%s' already exists --> %s\n", name, find_bookmark(head, name)->bookmark.path);
-        printf("Try using a different name.\n");
-        free(resolved_path);
-        free_bookmarks(head);
-        return 1;
+    if (head != NULL) {
+        if (bookmark_exists(head, name)) {
+            printf("Error: A bookmark named '%s' already exists --> %s\n", name, find_bookmark(head, name)->bookmark.path);
+            printf("Try using a different name.\n");
+            free(resolved_path);
+            free_bookmarks(head);
+            return 1;
+        }
     }
 
     BookmarkNode *added_bookmark = malloc(sizeof(BookmarkNode));
@@ -565,7 +567,7 @@ static char *get_bookmark_file_path(void) {
     char *file_path = malloc(strlen(home) + strlen(BOOKMARK_DIRECTORY) + strlen(BOOKMARK_FILE) + 1); //home + "/.bm/bookmarks.tsv" + null terminator
     if (!file_path) return NULL;
 
-    sprintf(file_path, "%s/.bm/bookmarks.tsv", home);
+    sprintf(file_path, "%s%s%s", home, BOOKMARK_DIRECTORY, BOOKMARK_FILE);
     return file_path;
 }
 
@@ -583,6 +585,6 @@ static char *get_bookmark_dir_path(void) {
     char *dir_path = malloc(strlen(home) + strlen(BOOKMARK_DIRECTORY) + 1); //home + "/.bm/" + null terminator
     if (!dir_path) return NULL;
 
-    sprintf(dir_path, "%s/.bm", home);
+    sprintf(dir_path, "%s%s", home, BOOKMARK_DIRECTORY);
     return dir_path;
 }
