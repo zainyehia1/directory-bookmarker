@@ -13,10 +13,15 @@ bookmarks.o: src/bookmarks.c
 
 install: bm
 	@mkdir -p $(HOME)/bin
+	@chmod +x bm
 	@cp bm $(HOME)/bin/
-	@echo export PATH="$(PATH):$(HOME)/bin"
 	@echo "bm installed to $(HOME)/bin/"
 	@echo "Make sure $(HOME)/bin is in your PATH"
+	@echo ""
+	@echo "If $(HOME)/bin is not in your PATH, add this line to your shell config:"
+	@echo "   export PATH=\"\$$PATH:\$$HOME/bin\""
+	@echo ""
+	@echo "Then run: source ~/.bashrc or source ~/.zshrc (or restart your terminal)"
 
 clean:
 	rm -f *.o bm
