@@ -1,6 +1,7 @@
 #include "bookmarks.h"
 
 #include <ctype.h>
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -39,8 +40,9 @@ int init_bookmark(void) {
         printf("Error initializing bookmark system!\n");
         return 1;
     }
-    if (access(dir_path, F_OK) != 0) {
-        mkdir(dir_path, 0700);
+    if (mkdir(dir_path, 0700) == -1 && errno != EEXIST) {
+        fprintf(stderr, "Failed to make directory %s: %s\n", dir_path, strerror(errno));
+        free(dir_path);
     }
     free(dir_path);
 
@@ -50,24 +52,28 @@ int init_bookmark(void) {
         return 1;
     }
     FILE *file = fopen(file_path, "r");
-    if (file == NULL) {
+    if (!file) {
         file = fopen(file_path, "w");
-        if (file != NULL) {
+        if (file) {
             fprintf(file, "Bookmark Name\tDirectory Path\n");
-            fclose(file);
+            if (fclose(file) == -1) {
+              fprintf(stderr, "Failed to close %s: %s\n", file_path, strerror(errno));
+            }
             free(file_path);
 
             printf("Bookmark system initialized!\n");
             return 0;
         }
         else {
-            printf("Error initializing bookmark system!\n");
+            fprintf(stderr, "Failed to open %s: %s\n", file_path, strerror(errno));
             free(file_path);
             return 1;
         }
     }
     else {
-        fclose(file);
+        if (fclose(file) == -1) {
+            fprintf(stderr, "Failed to close %s: %s\n", file_path, strerror(errno));
+        }
         free(file_path);
 
         printf("Bookmark system already initialized!\n");
@@ -101,19 +107,19 @@ int add_bookmark(char *name, char *path) {
     char *resolved_path = realpath(tilde_expanded, NULL);
     if (tilde_expanded != path) free(tilde_expanded);
 
-    if (resolved_path == NULL) {
+    if (!resolved_path) {
         if (path[0] == '~') {
             printf("'%s' is not a valid path.\n", path);
             printf("Tilde paths must start with '~/' (e.g., ~/Desktop)\n");
             return 1;
         }
-        printf("'%s' is not a valid path.\n", path);
+        fprintf(stderr, "Failed to resolve %s: %s\n", path, strerror(errno));
         return 1;
     }
 
     BookmarkNode *head = load_bookmarks();
 
-    if (head != NULL) {
+    if (head) {
         if (bookmark_exists(head, name)) {
             printf("Error: A bookmark named '%s' already exists --> %s\n", name, find_bookmark(head, name)->bookmark.path);
             printf("Try using a different name.\n");
@@ -125,7 +131,7 @@ int add_bookmark(char *name, char *path) {
 
     BookmarkNode *added_bookmark = malloc(sizeof(BookmarkNode));
     if (!added_bookmark) {
-        printf("Failed to add bookmark: not enough system memory.\n");
+        fprintf(stderr, "Failed to allocate memory for bookmark: %s\n", strerror(errno));
         free(resolved_path);
         free_bookmarks(head);
         return 1;
@@ -135,12 +141,12 @@ int add_bookmark(char *name, char *path) {
     free(resolved_path);
     added_bookmark->next = NULL;
 
-    if (head == NULL) {
+    if (!head) {
         head = added_bookmark;
     }
     else {
         BookmarkNode *temp = head;
-        while (temp->next != NULL) {
+        while (temp->next) {
             temp = temp->next;
         }
         temp->next = added_bookmark;
@@ -161,7 +167,7 @@ int list_bookmarks(void) {
 
     BookmarkNode *head = load_bookmarks();
 
-    if (head == NULL) {
+    if (!head) {
         printf("+------------------+------------------+\n");
         printf("|  Bookmark Name   |  Directory Path  |\n");
         printf("+------------------+------------------+\n");
@@ -173,7 +179,7 @@ int list_bookmarks(void) {
     int longest_path = strlen(head->bookmark.path);
 
     BookmarkNode *temp = head;
-    while (temp != NULL) {
+    while (temp) {
         int len = strlen(temp->bookmark.path);
         if (len > longest_path) longest_path = len;
         temp = temp->next;
@@ -192,7 +198,7 @@ int list_bookmarks(void) {
     printf("+\n");
 
     temp = head;
-    while (temp != NULL) {
+    while (temp) {
         printf("| %-15s | %-*s |\n", temp->bookmark.name, longest_path, temp->bookmark.path);
         temp = temp->next;
     }
@@ -217,13 +223,13 @@ int delete_bookmark(char *name) {
     BookmarkNode *head = load_bookmarks();
     BookmarkNode *target = find_bookmark(head, name);
 
-    if (head == NULL) {
+    if (!head) {
         printf("You don't have any bookmarks yet.\n");
         printf("Use bm add <name> <path> to add one.\n");
         return 1;
     }
 
-    if (target != NULL) {
+    if (target) {
         if (head == target) {
             head = head->next;
             free(target);
@@ -262,13 +268,13 @@ int rename_bookmark(char *old_name, char *new_name) {
     BookmarkNode *head = load_bookmarks();
     BookmarkNode *target = find_bookmark(head, old_name);
 
-    if (head == NULL) {
+    if (!head) {
         printf("You don't have any bookmarks yet.\n");
         printf("Use bm add <name> <path> to add one.\n");
         return 1;
     }
 
-    if (target != NULL) {
+    if (target) {
         if (!bookmark_exists(head, new_name)) {
             if (strlen(new_name) >= MAX_NAME) {
                 printf("The new bookmark name is too long. Try again\n");
@@ -314,7 +320,7 @@ int edit_path(char *name, char *new_path) {
     char *resolved_path = realpath(tilde_expanded, NULL);
     if (tilde_expanded != new_path) free(tilde_expanded);
 
-    if (resolved_path == NULL) {
+    if (!resolved_path) {
         if (new_path[0] == '~') {
             printf("'%s' is not a valid path.\n", new_path);
             printf("Tilde paths must start with '~/' (e.g., ~/Desktop)\n");
@@ -327,13 +333,13 @@ int edit_path(char *name, char *new_path) {
     BookmarkNode *head = load_bookmarks();
     BookmarkNode *target = find_bookmark(head, name);
 
-    if (head == NULL) {
+    if (!head) {
         printf("You don't have any bookmarks yet.\n");
         printf("Use bm add <name> <path> to add one.\n");
         return 1;
     }
 
-    if (target != NULL) {
+    if (target) {
         if (strlen(resolved_path) >= MAX_PATH) {
             printf("The new directory path is too long. Try again.\n");
             free(resolved_path);
@@ -367,7 +373,7 @@ int go(char *name) {
     BookmarkNode *head = load_bookmarks();
     BookmarkNode *target = find_bookmark(head, name);
 
-    if (head == NULL) {
+    if (!head) {
         fprintf(stderr, "You don't have any bookmarks yet.\n");
         fprintf(stderr, "Use bm add <name> <path> to add one.\n");
         return 1;
@@ -394,7 +400,7 @@ int go(char *name) {
 static void free_bookmarks(BookmarkNode *head) {
     BookmarkNode *temp = head;
 
-    while (temp != NULL) {
+    while (temp) {
         BookmarkNode *next = temp->next;
         free(temp);
         temp = next;
@@ -411,44 +417,51 @@ static BookmarkNode *load_bookmarks(void) {
     char *file_path = get_bookmark_file_path();
 
     FILE *file = fopen(file_path, "r");
-    if (file != NULL) {
-        char line [MAX_LINE];
+    if (!file) {
+        fprintf(stderr, "Failed to open %s: %s\n", file_path, strerror(errno));
+        return NULL;
+    }
+    char line [MAX_LINE];
 
-        fgets(line, MAX_LINE, file); // Skip headers
+    fgets(line, MAX_LINE, file); // Skip headers
 
-        while (fgets(line, MAX_LINE, file) != NULL) {
-            char *name = strtok(line,"\t");
-            char *path = strtok(NULL, "\n");
+    while (fgets(line, MAX_LINE, file)) {
+        char *name = strtok(line,"\t");
+        char *path = strtok(NULL, "\n");
 
-            if (name != NULL && path != NULL){
-                BookmarkNode *bookmark_node = malloc(sizeof(BookmarkNode));
-                if (bookmark_node == NULL) {
-                    printf("Failed to load bookmarks due to insufficient memory.\n");
-                    free_bookmarks(head);
-                    free(file_path);
-                    return NULL;
+        if (name && path){
+            BookmarkNode *bookmark_node = malloc(sizeof(BookmarkNode));
+            if (!bookmark_node) {
+                printf("Failed to load bookmarks due to insufficient memory.\n");
+                free_bookmarks(head);
+                free(file_path);
+                return NULL;
+            }
+
+            trim_trailing_space(name);
+
+            strcpy(bookmark_node->bookmark.name, name);
+            strcpy(bookmark_node->bookmark.path, path);
+            bookmark_node->next = NULL;
+            if (!head) {
+                head = bookmark_node;
+            }
+            else {
+                BookmarkNode *temp = head;
+                while (temp->next) {
+                    temp = temp->next;
                 }
-
-                trim_trailing_space(name);
-
-                strcpy(bookmark_node->bookmark.name, name);
-                strcpy(bookmark_node->bookmark.path, path);
-                bookmark_node->next = NULL;
-                if (head == NULL) {
-                    head = bookmark_node;
-                }
-                else {
-                    BookmarkNode *temp = head;
-                    while (temp->next != NULL) {
-                        temp = temp->next;
-                    }
-                    temp->next = bookmark_node;
-                }
+                temp->next = bookmark_node;
             }
         }
-        fclose(file);
-        free(file_path);
     }
+
+    if (fclose(file) == -1) {
+        fprintf(stderr, "Failed to close %s: %s\n", file_path, strerror(errno));
+    }
+    
+    free(file_path);
+    
     return head;
 }
 
@@ -459,8 +472,8 @@ static BookmarkNode *load_bookmarks(void) {
 static int save_bookmarks(BookmarkNode *head) {
     char *path = get_bookmark_file_path();
     FILE *file = fopen(path, "w");
-    if (file == NULL) {
-        printf("Error saving bookmarks to file.\n");
+    if (!file) {
+        fprintf(stderr, "Failed to open %s: %s\n", path, strerror(errno));
         free(path);
         return 1;
     }
@@ -468,13 +481,17 @@ static int save_bookmarks(BookmarkNode *head) {
     fprintf(file, "Bookmark Name\tDirectory Path\n");
 
     BookmarkNode *temp = head;
-    while (temp != NULL) {
+    while (temp) {
         fprintf(file, "%-15s\t%s\n", temp->bookmark.name, temp->bookmark.path);
         temp = temp->next;
     }
 
-    fclose(file);
+    if (fclose(file) == -1) {
+        fprintf(stderr, "Failed to close %s: %s\n", path, strerror(errno));
+    }
+
     free(path);
+
     return 0;
 }
 
@@ -492,10 +509,10 @@ static void trim_trailing_space(char *name) {
 }
 
 static BookmarkNode *find_bookmark(BookmarkNode *head, char *name) {
-    if (head == NULL) return head;
+    if (!head) return head;
 
     BookmarkNode *temp = head;
-    while (temp != NULL && strcasecmp(temp->bookmark.name, name) != 0) {
+    while (temp && strcasecmp(temp->bookmark.name, name) != 0) {
         temp = temp->next;
     }
 
@@ -517,11 +534,14 @@ static bool bookmark_exists(BookmarkNode *head, char *name) {
 static bool is_initialized(void) {
     char *path = get_bookmark_file_path();
     FILE *file = fopen(path, "r");
-    if (file == NULL) {
+    if (!file) {
+        fprintf(stderr, "Failed to open %s: %s\n", path, strerror(errno));
         free(path);
         return false;
     }
-    fclose(file);
+    if (fclose(file) == -1) {
+        fprintf(stderr, "Failed to close %s: %s\n", path, strerror(errno));
+    }
     free(path);
     return true;
 }
@@ -541,7 +561,10 @@ static char *resolve_tilde(char *path) {
 
         const char *path_after_tilde = path + 1;
         char *resolved_path = malloc(strlen(home) + strlen(path_after_tilde) + 1);
-        if (!resolved_path) return NULL;
+        if (!resolved_path) {
+            fprintf(stderr, "Failed to allocate memory for resolved_path: %s\n", strerror(errno));
+            return NULL;
+        }
 
         strcpy(resolved_path, home);
 
@@ -565,7 +588,10 @@ static char *get_bookmark_file_path(void) {
     }
 
     char *file_path = malloc(strlen(home) + strlen(BOOKMARK_DIRECTORY) + strlen(BOOKMARK_FILE) + 1); //home + "/.bm/bookmarks.tsv" + null terminator
-    if (!file_path) return NULL;
+    if (!file_path) {
+            fprintf(stderr, "Failed to allocate memory for file_path: %s\n", strerror(errno));
+            return NULL;
+    }
 
     sprintf(file_path, "%s%s%s", home, BOOKMARK_DIRECTORY, BOOKMARK_FILE);
     return file_path;
@@ -583,7 +609,10 @@ static char *get_bookmark_dir_path(void) {
     }
 
     char *dir_path = malloc(strlen(home) + strlen(BOOKMARK_DIRECTORY) + 1); //home + "/.bm/" + null terminator
-    if (!dir_path) return NULL;
+    if (!dir_path) {
+        fprintf(stderr, "Failed to allocate memory for dir_path: %s\n", strerror(errno));
+        return NULL;
+    }
 
     sprintf(dir_path, "%s%s", home, BOOKMARK_DIRECTORY);
     return dir_path;
