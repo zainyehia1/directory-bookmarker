@@ -251,9 +251,6 @@ Bookmark added successfully!
    
 ## Known Limitations
 
-- Paths longer than 512 characters are rejected.
-  * I chose this because this wouldn't be an issue for most users and it saves some memory.
-  * An alternative would be `PATH_MAX` (4096) from `<linux/limits.h>`
 - Manual edits to the bookmark file are not validated.
 - Incompatibility with Windows.
 
