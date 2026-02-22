@@ -5,10 +5,10 @@
 #define BOOKMARK_DIRECTORY "/.bm/"
 #define BOOKMARK_FILE "bookmarks.tsv"
 
-#define MAX_NAME 16        // Max buffer size (15 visible chars + '\0')
-#define MAX_PATH 512       // Max buffer size (511 visible chars + '\0')
+#define MAX_NAME 16        // Max buffer size (15 visible chars + null terminator)
+#define MAX_PATH 4096       // Max buffer size (4095 visible chars + null terminator) (Same size as PATH_MAX in linux/limits.h)
 
-#define MAX_LINE (MAX_NAME + MAX_PATH + 2) // Max line in bookmarks.tsv file (MAX_NAME + MAX_PATH + \t + \n)
+#define MAX_LINE (MAX_NAME + MAX_PATH + 2) // Max line in bookmarks.tsv (MAX_NAME + MAX_PATH + tab + newline)
 
 typedef struct {
     char name[MAX_NAME];
